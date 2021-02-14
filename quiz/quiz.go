@@ -15,32 +15,33 @@ type problems struct {
 	a string
 }
 
-func quiz(problems []problems, timeLimit int) {
+func quiz(problems []problems, timeLimit int) string {
 	correct := 0
-	incorrect := 0
 	timer := time.NewTimer(time.Duration(timeLimit) * time.Second)
 
 	for idx, prob := range problems {
 		fmt.Printf("Question number %d is %s? \n", idx+1, prob.q)
-		select {
-		case <-timer.C:
-			fmt.Println("Ops! You ran out of time")
-			fmt.Printf("out of %d questions, you got %d questions correct \n", len(problems), correct)
-			return
-		default:
+		responseCh := make(chan string)
+		go func() {
 			var response string
 			fmt.Scanln(&response)
+			responseCh <- response
+		}()
+		select {
+		case <-timer.C:
+			return fmt.Sprintf(`
+			Ops! You ran out of time! \n
+			Out of %d questions, you got %d questions correct \n`, len(problems), correct)
+		case response := <-responseCh:
 			if response == prob.a {
 				fmt.Println("Genius! You got the answer right")
 				correct++
 			} else {
 				fmt.Println("You failed that question but that doesn't make you a failure :)")
-				incorrect++
 			}
 		}
 	}
-	fmt.Printf("out of %d questions, you got %d questions correct \n", len(problems), correct)
-	return
+	return fmt.Sprintf("Out of %d questions, you got %d questions correct \n", len(problems), correct)
 }
 
 func parseQuiz(arr [][]string) []problems {
@@ -60,6 +61,7 @@ func readFile(fileName string) ([][]string, error) {
 		fmt.Printf("Failed to open file with filename %s \n", fileName)
 		os.Exit(1)
 	}
+	defer problems.Close()
 	header, err := bufio.NewReader(problems).ReadSlice('\n')
 	if err != nil {
 		return nil, err
