@@ -29,7 +29,7 @@ func TestInvalidFilename(t *testing.T) {
 }
 
 func TestReadFile(t *testing.T) {
-	ans, err := readFile("./fixtures/test1.csv")
+	ans, err := readFile("test.csv")
 	if err != nil {
 		t.Errorf("Got err %s", err)
 	}
@@ -46,7 +46,7 @@ func TestReadFile(t *testing.T) {
 
 }
 
-func TestParseQuiz(t *testing.T) {
+func TestParseProblems(t *testing.T) {
 	rows := make([][]string, 2)
 	rows[0] = []string{"5+5", "10"}
 	rows[1] = []string{"7+5", "12"}
@@ -59,7 +59,7 @@ func TestParseQuiz(t *testing.T) {
 		}
 	}
 
-	ans := parseQuiz(rows)
+	ans := parseProblems(rows)
 	if len(ans) != len(want) {
 		t.Errorf("Expected %d got %d", len(want), len(ans))
 	}
@@ -70,18 +70,18 @@ func TestParseQuiz(t *testing.T) {
 	}
 }
 
-func TestQuiz(t *testing.T) {
-	prob := make([]problems, 2)
-	prob[0] = problems{
-		q: "5+5",
-		a: "10",
-	}
-	prob[1] = problems{
-		q: "7+5",
-		a: "12",
-	}
+// func TestQuiz(t *testing.T) {
+// 	file := "test.csv"
+// 	limit := 5
 
-	quiz(prob, 5)
-	// t.Log(ans)
+// 	ctrl := gomock.NewController(t)
+// 	defer ctrl.Finish()
 
-}
+// 	m := NewMockgetstdin(ctrl)
+// 	m.EXPECT().getstdin().Return("10")
+
+// 	res, err := quiz(file, limit)
+// 	t.Log("response===============>", res)
+// 	t.Log("error=====================>", err)
+
+// }

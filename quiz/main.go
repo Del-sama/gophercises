@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"log"
+	"fmt"
 )
 
 func main() {
@@ -14,16 +14,10 @@ func main() {
 	timeLimit := flag.Int("limit", defaultTimeLimit, "Integer time limit")
 	flag.Parse()
 
-	if !isValidFileName(*fileName) {
-		log.Fatal("Invalid file name")
-		return
+	res, err := quiz(*fileName, *timeLimit)
+	if err != nil {
+		fmt.Println(err)
 	} else {
-		arr, err := readFile(*fileName)
-		if err != nil {
-			log.Fatal(err)
-			return
-		}
-		problems := parseQuiz(arr)
-		quiz(problems, *timeLimit)
+		fmt.Println(res)
 	}
 }
