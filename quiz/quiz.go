@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"reflect"
 	"time"
 	"unicode"
 )
@@ -18,7 +17,6 @@ type problems struct {
 func quiz(fileName string, timeLimit int) (string, error) {
 	correct := 0
 	timer := time.NewTimer(time.Duration(timeLimit) * time.Second)
-	fmt.Println(reflect.TypeOf(timer))
 
 	if !isValidFileName(fileName) {
 		return "", errors.New("Invalid file name")
@@ -93,7 +91,6 @@ func readFile(fileName string) ([][]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(rows[1:])
 	return rows[1:], err
 }
 
