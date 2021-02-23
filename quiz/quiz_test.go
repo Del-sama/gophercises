@@ -1,8 +1,47 @@
 package main
 
 import (
+	"bytes"
+	"encoding/csv"
+	"fmt"
+	"log"
+	"os"
+	"strings"
 	"testing"
 )
+
+func setupFile() {
+	file, err := os.Create("test.csv")
+	if err != nil {
+		log.Fatal("Cannot create file", err)
+		os.Exit(1)
+	}
+	fmt.Println("Successfully created file")
+	defer file.Close()
+
+	writer := csv.NewWriter(file)
+	defer writer.Flush()
+
+	data := [][]string{{"problem", "solution"}, {"5+5", "10"}}
+
+	for _, value := range data {
+		err := writer.Write(value)
+		if err != nil {
+			log.Fatal("Cannot write to file", err)
+			os.Exit(1)
+		}
+	}
+	fmt.Println("Successfully updated file")
+}
+
+func teardownFile() {
+	err := os.Remove("test.csv")
+	if err != nil {
+		log.Fatal("Cannot delete file", err)
+		os.Exit(1)
+	}
+	fmt.Println("Successfully deleted file")
+}
 
 func TestInvalidFilename(t *testing.T) {
 	var tests = []struct {
@@ -29,6 +68,7 @@ func TestInvalidFilename(t *testing.T) {
 }
 
 func TestReadFile(t *testing.T) {
+	setupFile()
 	ans, err := readFile("test.csv")
 	if err != nil {
 		t.Errorf("Got err %s", err)
@@ -43,7 +83,7 @@ func TestReadFile(t *testing.T) {
 			t.Errorf("Expected %v, got %v", want, ans)
 		}
 	}
-
+	teardownFile()
 }
 
 func TestParseProblems(t *testing.T) {
@@ -70,18 +110,47 @@ func TestParseProblems(t *testing.T) {
 	}
 }
 
-// func TestQuiz(t *testing.T) {
-// 	file := "test.csv"
-// 	limit := 5
+func TestGetstdin(t *testing.T) {
+	var stdin bytes.Buffer
 
-// 	ctrl := gomock.NewController(t)
-// 	defer ctrl.Finish()
+	stdin.Write([]byte("10\n"))
+	res, err := getstdin(&stdin)
+	if err != nil {
+		t.Errorf("Got err %s ", err)
+	}
+	if strings.TrimSpace(res) != "10" {
+		t.Errorf("Expected %s, got %s", "10", strings.TrimSpace(res))
+	}
+}
 
-// 	m := NewMockgetstdin(ctrl)
-// 	m.EXPECT().getstdin().Return("10")
+func TestQuiz(t *testing.T) {
+	setupFile()
+	file := "test.csv"
+	limit := 5
 
-// 	res, err := quiz(file, limit)
-// 	t.Log("response===============>", res)
-// 	t.Log("error=====================>", err)
+	var stdin bytes.Buffer
 
-// }
+	stdin.Write([]byte("10\n"))
+
+	res, err := quiz(file, limit, &stdin)
+	if err != nil {
+		t.Errorf("Got err %s ", err)
+	}
+	want := "Out of 1 questions, you got 1 questions correct"
+
+	if strings.TrimSpace(res) != want {
+		t.Errorf("Expected %s, got %s", want, strings.TrimSpace(res))
+	}
+
+	stdin.Write([]byte("11\n"))
+	res, err = quiz(file, limit, &stdin)
+	if err != nil {
+		t.Errorf("Got err %s ", err)
+	}
+	want = "Out of 1 questions, you got 0 questions correct"
+
+	if strings.TrimSpace(res) != want {
+		t.Errorf("Expected %s, got %s", want, strings.TrimSpace(res))
+	}
+	teardownFile()
+}

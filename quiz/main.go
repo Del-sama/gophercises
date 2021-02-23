@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
 )
 
 func main() {
@@ -14,7 +15,7 @@ func main() {
 	timeLimit := flag.Int("limit", defaultTimeLimit, "Integer time limit")
 	flag.Parse()
 
-	res, err := quiz(*fileName, *timeLimit)
+	res, err := quiz(*fileName, *timeLimit, os.Stdin)
 	if err != nil {
 		fmt.Println(err)
 	} else {

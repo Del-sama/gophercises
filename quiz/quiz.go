@@ -1,10 +1,13 @@
 package main
 
 import (
+	"bufio"
 	"encoding/csv"
 	"errors"
 	"fmt"
+	"io"
 	"os"
+	"strings"
 	"time"
 	"unicode"
 )
@@ -14,7 +17,7 @@ type problems struct {
 	a string
 }
 
-func quiz(fileName string, timeLimit int) (string, error) {
+func quiz(fileName string, timeLimit int, stdin io.Reader) (string, error) {
 	correct := 0
 	timer := time.NewTimer(time.Duration(timeLimit) * time.Second)
 
@@ -27,7 +30,7 @@ func quiz(fileName string, timeLimit int) (string, error) {
 	}
 	problems := parseProblems(arr)
 	for idx, prob := range problems {
-		count, err := runQuiz(idx+1, prob.q, prob.a, timer)
+		count, err := runQuiz(idx+1, prob.q, prob.a, timer, stdin)
 		if err != nil {
 			break
 		}
@@ -39,12 +42,13 @@ func quiz(fileName string, timeLimit int) (string, error) {
 
 }
 
-func runQuiz(idx int, question string, answer string, timer *time.Timer) (int, error) {
+func runQuiz(idx int, question string, answer string, timer *time.Timer, stdin io.Reader) (int, error) {
 	fmt.Printf("Question number %d is %s? \n", idx, question)
 	responseCh := make(chan string)
 	count := 0
 	go func() {
-		response := getstdin()
+		response, _ := getstdin(stdin)
+		response = strings.TrimSpace(response)
 		responseCh <- response
 	}()
 	select {
@@ -62,10 +66,9 @@ func runQuiz(idx int, question string, answer string, timer *time.Timer) (int, e
 	return count, nil
 }
 
-func getstdin() string {
-	var response string
-	fmt.Scanln(&response)
-	return response
+func getstdin(stdin io.Reader) (string, error) {
+	reader := bufio.NewReader(stdin)
+	return reader.ReadString('\n')
 }
 
 func parseProblems(arr [][]string) []problems {
